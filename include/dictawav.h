@@ -19,26 +19,26 @@
 
 namespace DictaWav
 {
-    class DictaWav
-    {
-        private:
-        std::unique_ptr<WavHandler> wavHandlerPtr;
-        std::unique_ptr<PreProcessor> preProcessorPtr;
-        KernelCanvas<Frame<double>> kernelCanvas;
-        Wisard wisard;
-        
-        public:
-        DictaWav() :
-                kernelCanvas(1024, 13),
-                wisard(1024, 3)
-        {}
-        
-        void newTraining(std::string wavTrainingFile, std::string className);
-        void classify(std::string wavFileToClassify);
-        
-        private:
-        void readAndProcessWavFile(std::string wavFile);
-    };
+  class DictaWav
+  {
+    private:
+      std::unique_ptr<WavHandler> wavHandlerPtr;
+      std::unique_ptr<PreProcessor> preProcessorPtr;
+      KernelCanvas<Frame<double>> kernelCanvas;
+      Wisard wisard;
+    
+    public:
+      DictaWav() :
+          kernelCanvas(1024, 13),
+          wisard(1024, 3)
+      { }
+      
+      void newTraining(std::string wavTrainingFile, std::string className);
+      void classify(std::string wavFileToClassify);
+    
+    private:
+      void readAndProcessWavFile(std::string wavFile);
+  };
 }
 
 #endif //DICTAWAV_DICTAWAV_H
