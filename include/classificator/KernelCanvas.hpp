@@ -26,13 +26,17 @@ namespace DictaWav
     private:
       std::size_t numKernels;
       std::size_t kernelDimension;
+      int outputFactor = 1;
       std::vector<Kernel> kernels;
+      std::vector<bool> activeKernels;
       std::vector<std::vector<double>> processedFrames;
     
     public:
-      KernelCanvas(std::size_t numKernels, std::size_t kernelDimension) :
+      KernelCanvas(std::size_t numKernels, std::size_t kernelDimension, int outputFactor = 1) :
           numKernels(numKernels),
-          kernelDimension(kernelDimension)
+          kernelDimension(kernelDimension),
+          activeKernels(numKernels, false),
+          outputFactor(outputFactor)
       {
         for (int kernel = 0; kernel != numKernels; ++kernel)
           this->kernels.push_back(Kernel(this->kernelDimension * 4));
@@ -45,11 +49,20 @@ namespace DictaWav
         this->replicateFeatures();
       }
       
-      void paintCanvas()
+      std::vector<bool>&& getPaintedCanvas()
       {
-        for (const auto& frame : this->processedFrames) {
+        auto activeKernelsSize = this->activeKernels.size();
+        std::vector<bool> paintedCanvas(activeKernelsSize * this->outputFactor);
         
+        // KernelCanvas output can be replicated to give better results with WiSARD
+        for (std::size_t index = 0; index != activeKernelsSize * this->outputFactor; ++index) {
+          paintedCanvas[index] = this->activeKernels[index % activeKernelsSize];
         }
+        
+        // Cleaning the canvas for next use
+        this->cleanCanvas();
+        
+        return std::move(paintedCanvas);
       }
     
     private:
@@ -134,6 +147,36 @@ namespace DictaWav
         
         // Doubling up frame size
         this->kernelDimension *= 2;
+      }
+      
+      std::size_t getNearestKernelIndex(std::vector<double>& frame)
+      {
+        auto currentKernel = Kernel(this->kernelDimension, frame.data());
+        std::size_t nearestKernelIndex = 0;
+        double nearestKernelDistance = std::numeric_limits<double>::max();
+        
+        for (std::size_t index = 0; index != this->kernels.size(); ++index) {
+          auto distance = this->kernels[index].checkDistance(currentKernel);
+          if (distance < nearestKernelDistance) {
+            nearestKernelDistance = distance;
+            nearestKernelIndex = index;
+          }
+        }
+        
+        return nearestKernelIndex;
+      }
+      
+      void paintCanvas()
+      {
+        for (auto& frame : this->processedFrames) {
+          this->activeKernels[this->getNearestKernelIndex(frame)] = true;
+        }
+      }
+      
+      void cleanCanvas()
+      {
+        for (auto& kernel : this->activeKernels)
+          kernel = false;
       }
   };
 }
