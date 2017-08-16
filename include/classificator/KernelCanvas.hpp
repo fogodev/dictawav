@@ -51,6 +51,8 @@ namespace DictaWav
       
       std::vector<bool>&& getPaintedCanvas()
       {
+        this->paintCanvas();
+        
         auto activeKernelsSize = this->activeKernels.size();
         std::vector<bool> paintedCanvas(activeKernelsSize * this->outputFactor);
         
