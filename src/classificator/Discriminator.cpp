@@ -6,31 +6,32 @@
 |-------------------------------------------------------------|
 \*************************************************************/
 
-#include "../../include/wisard/Discriminator.h"
+#include "../../include/classificator/Discriminator.h"
 
 namespace DictaWav
 {
   Discriminator::Discriminator(
       std::size_t retinaSize,
-      std::size_t numBitsAdress,
-      std::vector<std::size_t> ramAdressMapping
+      std::size_t numBitsAddress,
+      std::vector<std::size_t> ramAddressMapping,
+      bool isCumulative = true
                               ) :
       retinaSize(retinaSize),
-      numBitsAddress(numBitsAdress),
-      ramAddressMapping(ramAdressMapping),
+      numBitsAddress(numBitsAddress),
+      ramAddressMapping(ramAddressMapping),
       ramsCount(
           static_cast<std::size_t>(std::ceil(
-              static_cast<double>(retinaSize) / static_cast<double>(numBitsAdress))))
+              static_cast<double>(retinaSize) / static_cast<double>(numBitsAddress))))
   {
-    if (!(retinaSize % numBitsAdress > 0))
+    if (retinaSize % numBitsAddress == 0)
       for (std::size_t index = 0; index != this->ramsCount; ++index)
-        this->rams.push_back(new Ram(numBitsAdress));
+        this->rams.push_back(new Ram(numBitsAddress, isCumulative));
     else {
       for (std::size_t index = 0; index != this->ramsCount - 1; ++index)
-        this->rams.push_back(new Ram(numBitsAdress));
+        this->rams.push_back(new Ram(numBitsAddress, isCumulative));
       
-      // The rest
-      this->rams.push_back(new Ram(retinaSize % numBitsAdress));
+      // The remaining rams
+      this->rams.push_back(new Ram(retinaSize % numBitsAddress, isCumulative));
     }
   }
   
@@ -40,80 +41,81 @@ namespace DictaWav
       delete this->rams[index];
   }
   
-  void Discriminator::train(const std::vector<int>& retina)
+  void Discriminator::train(const std::vector<bool>& retina)
   {
-    int ramIndex;
-    long long address;
-    int restOfPositions;
-    long long base;
+    std::size_t ramIndex = 0;
+    std::size_t address = 0;
+    std::size_t restOfPositions = 0;
+    std::size_t base;
     
     // Each group of numBitsAddress is related with a ram
     for (std::size_t index = 0;
          index <= this->retinaSize - this->numBitsAddress;
          index += this->numBitsAddress) {
-      address = 0LL;
-      base = 1LL;
+      address = 0;
+      base = 1;
       
       for (std::size_t bitIndex = 0; bitIndex != this->numBitsAddress; ++bitIndex) {
-        if (retina[this->ramAddressMapping[index + bitIndex]] != 0)
+        if (retina[this->ramAddressMapping[index + bitIndex]])
           address += base;
-        base *= 2LL;
+        base *= 2;
       }
       
-      ramIndex = static_cast<int>(index / this->numBitsAddress);
-      this->rams[ramIndex]->push(address, 1);
+      ramIndex = index / this->numBitsAddress;
+      this->rams[ramIndex]->push(address);
     }
     
-    // The rest of the retina (when retina's length isn't a multiple of bit's address number
+    // The rest of the retina when retina's length isn't a multiple of bit's address number
     restOfPositions = this->retinaSize % this->numBitsAddress;
     if (!restOfPositions) {
-      address = 0LL;
-      base = 1LL;
+      address = 0;
+      base = 1;
       for (std::size_t bitIndex = 0; bitIndex != this->numBitsAddress; ++bitIndex) {
-        if (retina[this->ramAddressMapping[this->retinaSize - restOfPositions - 1 + bitIndex]] != 0)
+        if (retina[this->ramAddressMapping[this->retinaSize - restOfPositions - 1 + bitIndex]])
           address += base;
-        base *= 2LL;
+        base *= 2;
       }
-      this->rams[ramIndex + 1]->push(address, 1);
+      this->rams[ramIndex + 1]->push(address);
     }
   }
   
-  std::vector<int> Discriminator::classify(const std::vector<int>& retina)
+  std::vector<unsigned>&& Discriminator::classify(const std::vector<bool>& retina)
   {
-    long long address;
-    int ramIndex;
-    int restOfPositions;
-    long long base;
-    std::vector<int> result(this->ramsCount);
+    std::size_t ramIndex = 0;
+    std::size_t address = 0;
+    std::size_t restOfPositions = 0;
+    std::size_t base;
+    std::vector<unsigned> result(this->ramsCount);
     
     // Each group of numBitsAddress is related with a ram
     for (std::size_t index = 0;
-         index <= this->retinaSize - this->numBitsAddress; index += this->numBitsAddress) {
-      address = 0LL;
-      base = 1LL;
+         index <= this->retinaSize - this->numBitsAddress;
+         index += this->numBitsAddress) {
+      address = 0;
+      base = 1;
       
       for (std::size_t bitIndex = 0; bitIndex != this->numBitsAddress; ++bitIndex) {
-        if (retina[this->ramAddressMapping[index + bitIndex]] != 0)
+        if (retina[this->ramAddressMapping[index + bitIndex]])
           address += base;
-        base *= 2LL;
+        base *= 2;
       }
-      ramIndex = static_cast<int>(index / numBitsAddress);
+      ramIndex = index / numBitsAddress;
       result.push_back(this->rams[ramIndex]->getValue(address));
     }
     
     // The rest of the retina, when retina's length isn't a multiple of bit's address number
     restOfPositions = this->retinaSize % this->numBitsAddress;
     if (!restOfPositions) {
-      address = 0LL;
-      base = 1LL;
+      address = 0;
+      base = 1;
       for (std::size_t bitIndex = 0; bitIndex != restOfPositions; ++bitIndex) {
-        if (retina[this->ramAddressMapping[this->retinaSize - restOfPositions - 1 + bitIndex]] != 0)
+        if (retina[this->ramAddressMapping[this->retinaSize - restOfPositions - 1 + bitIndex]])
           address += base;
-        base *= 2LL;
+        base *= 2;
       }
       result.push_back(this->rams[ramIndex + 1]->getValue(address));
     }
     
-    return result;
+    return std::move(result);
   }
 }

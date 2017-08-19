@@ -15,22 +15,28 @@
 
 namespace DictaWav
 {
-    class Discriminator
-    {
-        private:
-        std::size_t retinaSize;
-        std::size_t numBitsAddress;
-        std::size_t ramsCount;
-        std::vector<Ram*> rams;
-        std::vector<std::size_t> ramAddressMapping;
-        
-        public:
-        Discriminator(std::size_t retinaSize, std::size_t numBitsAdress, std::vector<std::size_t> ramAdressMapping);
-        ~Discriminator();
-        
-        void train(const std::vector<int>& retina);
-        std::vector<int> classify(const std::vector<int>& retina);
-    };
+  class Discriminator
+  {
+    private:
+      std::size_t retinaSize;
+      std::size_t numBitsAddress;
+      std::size_t ramsCount;
+      std::vector<Ram*> rams;
+      std::vector<std::size_t> ramAddressMapping;
+    
+    public:
+      Discriminator(
+          std::size_t retinaSize,
+          std::size_t numBitsAddress,
+          std::vector<std::size_t> ramAddressMapping,
+          bool isCumulative = true
+                   );
+      
+      ~Discriminator();
+      
+      void train(const std::vector<bool>& retina);
+      std::vector<unsigned>&& classify(const std::vector<bool>& retina);
+  };
 }
 
 #endif //DICTAWAV_DISCRIMINATOR_H

@@ -15,7 +15,7 @@
 #include "wav_handler/WavHandler.h"
 #include "preprocessor/PreProcessor.h"
 #include "classificator/KernelCanvas.hpp"
-#include "wisard/Wisard.h"
+#include "classificator/Wisard.h"
 
 namespace DictaWav
 {

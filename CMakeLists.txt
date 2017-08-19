@@ -14,9 +14,9 @@ set(HEADER_FILES
     include/preprocessor/DFTHandler.h
     include/classificator/Kernel.h
     include/classificator/KernelCanvas.hpp
-    include/wisard/Wisard.h
-    include/wisard/Discriminator.h
-    include/wisard/Ram.h
+    include/classificator/Wisard.h
+    include/classificator/Discriminator.h
+    include/classificator/Ram.h
     )
 
 # List of Source files (.c, .cc, .cpp)
@@ -25,9 +25,9 @@ set(SOURCE_FILES
     src/wav_handler/WavHandler.cpp
     src/preprocessor/PreProcessor.cpp
     src/preprocessor/DFTHandler.cpp
-    src/wisard/Wisard.cpp
-    src/wisard/Discriminator.cpp
-    src/wisard/Ram.cpp
+    src/classificator/Wisard.cpp
+    src/classificator/Discriminator.cpp
+    src/classificator/Ram.cpp
     src/main.cpp
     )
 
