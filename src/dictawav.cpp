@@ -21,12 +21,12 @@ namespace DictaWav
   void DictaWav::newTraining(std::string wavTrainingFile, std::string className)
   {
     this->readAndProcessWavFile(wavTrainingFile);
-    this->wisard.train(this->kernelCanvas.getPaintedCanvas(), {className});
+    this->wisard.train(this->kernelCanvas.getPaintedCanvas(), className);
   }
   
-  void DictaWav::classify(std::string wavFileToClassify)
+  std::string DictaWav::classify(std::string wavFileToClassify)
   {
     this->readAndProcessWavFile(wavFileToClassify);
-    this->wisard.classify(this->kernelCanvas.getPaintedCanvas());
+    return this->wisard.classify(this->kernelCanvas.getPaintedCanvas());
   }
 }

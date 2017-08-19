@@ -14,7 +14,7 @@ namespace DictaWav
       std::size_t retinaSize,
       std::size_t numBitsAddress,
       std::vector<std::size_t> ramAddressMapping,
-      bool isCumulative = true
+      bool isCumulative
                               ) :
       retinaSize(retinaSize),
       numBitsAddress(numBitsAddress),
@@ -41,12 +41,13 @@ namespace DictaWav
       delete this->rams[index];
   }
   
-  void Discriminator::train(const std::vector<bool>& retina)
+  void Discriminator::train(std::vector<bool> trainingRetina)
   {
     std::size_t ramIndex = 0;
     std::size_t address = 0;
     std::size_t restOfPositions = 0;
     std::size_t base;
+    auto retina = trainingRetina;
     
     // Each group of numBitsAddress is related with a ram
     for (std::size_t index = 0;
@@ -79,7 +80,7 @@ namespace DictaWav
     }
   }
   
-  std::vector<unsigned>&& Discriminator::classify(const std::vector<bool>& retina)
+  std::vector<unsigned> Discriminator::classify(std::vector<bool> retina)
   {
     std::size_t ramIndex = 0;
     std::size_t address = 0;

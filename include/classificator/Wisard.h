@@ -47,28 +47,28 @@ namespace DictaWav
             );
       ~Wisard();
       
-      void train(const std::vector<bool>& trainingRetina, const std::string& className);
+      void train(std::vector<bool> trainingRetina, const std::string& className);
       
-      std::string classify(const std::vector<bool>& retina);
+      std::string classify(std::vector<bool> retina);
       
-      std::unordered_map<std::string, double>&& classificationsProbabilities(
-          const std::vector<bool>& retina
+      std::unordered_map<std::string, double> classificationsProbabilities(
+          std::vector<bool> retina
                                                                             );
-      std::pair<std::string, double>&& classificationAndProbability(
-          const std::vector<bool>& retina
+      std::pair<std::string, double> classificationAndProbability(
+          std::vector<bool> retina
                                                                    );
       
-      std::pair<double, std::pair<std::string, double>>&& classificationConfidenceAndProbability(
-          const std::vector<bool>& retina
-                                                                                                );
+      std::pair<double, std::pair<std::string, double>> classificationConfidenceAndProbability(
+          std::vector<bool> retina
+                                                                                              );
     
     private:
-      std::unordered_map<std::string, double>&& applyBleaching(
+      std::unordered_map<std::string, double> applyBleaching(
           std::unordered_map<std::string, double>& classificationsProbabilitiesResult,
           std::unordered_map<std::string, std::vector<unsigned>>& ramResult
                                                               );
       
-      std::pair<double, std::pair<std::string, double>>&& calculateConfidence(
+      std::pair<double, std::pair<std::string, double>> calculateConfidence(
           const std::unordered_map<std::string, double>& classificationsProbabilitiesResult
                                                                              );
   };

@@ -32,10 +32,13 @@ namespace DictaWav
           this->coordinates[coordinate] = distribution(randomEngine);
       }
       
-      Kernel(std::size_t dimension, double* coordinates) :
+      Kernel(std::size_t dimension, std::vector<double> coordinates) :
           dimension(dimension),
-          coordinates(coordinates)
-      { }
+          coordinates(new double[dimension])
+      {
+        for (std::size_t index = 0; index != coordinates.size(); ++index)
+          this->coordinates[index] = coordinates[index];
+      }
       
       ~Kernel()
       {

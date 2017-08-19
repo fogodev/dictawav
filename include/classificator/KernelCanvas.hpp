@@ -42,43 +42,41 @@ namespace DictaWav
           this->kernels.push_back(Kernel(this->kernelDimension * 4));
       }
       
-      void preProcess(std::vector<Frame>&& frames)
+      void preProcess(const std::vector<Frame>& frames)
       {
-        this->appendSumFrames(std::move(frames));
+        // Cleaning the canvas
+        this->processedFrames = std::vector<std::vector<double>>();
+        this->cleanCanvas();
+        
+        this->appendSumFrames(frames);
         this->zScoreAndTanh();
         this->replicateFeatures();
       }
       
-      std::vector<bool>&& getPaintedCanvas()
+      std::vector<bool> getPaintedCanvas()
       {
         this->paintCanvas();
         
         auto activeKernelsSize = this->activeKernels.size();
-        std::vector<bool> paintedCanvas(activeKernelsSize * this->outputFactor);
+        std::vector<bool> paintedCanvas;
         
         // KernelCanvas output can be replicated to give better results with WiSARD
         for (std::size_t index = 0; index != activeKernelsSize * this->outputFactor; ++index) {
-          paintedCanvas[index] = this->activeKernels[index % activeKernelsSize];
+          paintedCanvas.emplace_back(this->activeKernels[index % activeKernelsSize]);
         }
-        
-        // Cleaning the canvas for next use
-        this->cleanCanvas();
-        
-        return std::move(paintedCanvas);
+        return paintedCanvas;
       }
     
     private:
-      void appendSumFrames(std::vector<Frame>&& frames)
+      void appendSumFrames(const std::vector<Frame>& frames)
       {
-        std::vector<std::vector<double>> processed;
-        
         // First frame
         auto& firstFrame = frames[0];
         std::vector<double> frame;
         for (std::size_t frameIndex = 0; frameIndex != this->kernelDimension * 2; ++frameIndex) {
           frame.push_back(firstFrame[frameIndex % this->kernelDimension]);
         }
-        processed.push_back(std::move(frame));
+        this->processedFrames.emplace_back(frame);
         frame = std::vector<double>();
         
         // Other frames
@@ -90,35 +88,32 @@ namespace DictaWav
           
           for (std::size_t frameIndex = 0; frameIndex != this->kernelDimension; ++frameIndex)
             frame.push_back(
-                currentFrame[frameIndex] + processed[index - 1][frameIndex + this->kernelDimension]
+                currentFrame[frameIndex]
+                + this->processedFrames[index - 1][frameIndex + this->kernelDimension]
             );
           
-          processed.push_back(std::move(frame));
+          this->processedFrames.emplace_back(frame);
           frame = std::vector<double>();
         }
-        
-        // Doubling up frame size
-        this->kernelDimension *= 2;
-        
-        std::swap(this->processedFrames, processed);
       }
       
       void zScoreAndTanh()
       {
-        std::vector<std::vector<double>> processed;
+        auto processed = std::vector<std::vector<double>>();
+        auto doubledKernelDimension = this->kernelDimension * 2;
         
-        std::vector<double> means(this->kernelDimension);
-        std::vector<double> standardDeviations(this->kernelDimension);
+        std::vector<double> means(doubledKernelDimension);
+        std::vector<double> standardDeviations(doubledKernelDimension);
         
         for (const auto& frame : this->processedFrames)
-          for (std::size_t index = 0; index != this->kernelDimension; ++index)
+          for (std::size_t index = 0; index != doubledKernelDimension; ++index)
             means[index] += frame[index];
         
         for (auto& mean : means)
           mean /= this->processedFrames.size(); // Calculating mean for each dimension
         
         for (const auto& frame : this->processedFrames)
-          for (std::size_t index = 0; index != this->kernelDimension; ++index)
+          for (std::size_t index = 0; index != doubledKernelDimension; ++index)
             standardDeviations[index] += std::pow((frame[index] - means[index]), 2);
         
         for (auto& standardDeviation : standardDeviations)
@@ -126,34 +121,32 @@ namespace DictaWav
           standardDeviation /= this->processedFrames.size() - 1;
         
         for (auto& frame: this->processedFrames) {
-          std::vector<double> zScoredFrame(this->kernelDimension);
-          for (std::size_t index = 0; index != this->kernelDimension; ++index)
+          std::vector<double> zScoredFrame(doubledKernelDimension);
+          for (std::size_t index = 0; index != doubledKernelDimension; ++index)
             zScoredFrame[index] = std::tanh(
                 (frame[index] - means[index]) / standardDeviations[index]
             ); // Applying Z-Score and Tanh
-          processed.push_back(zScoredFrame);
+          processed.emplace_back(zScoredFrame);
         }
         
-        std::swap(this->processedFrames, processed);
+        this->processedFrames = processed;
       }
       
       void replicateFeatures()
       {
+        auto doubledKernelDimension = this->kernelDimension * 2;
         // "Replicating features" on first frame just fill it with zeros
-        for (std::size_t frameIndex = 0; frameIndex != this->kernelDimension; ++frameIndex)
+        for (std::size_t frameIndex = 0; frameIndex != doubledKernelDimension; ++frameIndex)
           this->processedFrames[0].push_back(0);
         
         for (std::size_t index = 1; index != this->processedFrames.size(); ++index)
-          for (std::size_t frameIndex = 0; frameIndex != this->kernelDimension; ++frameIndex)
+          for (std::size_t frameIndex = 0; frameIndex != doubledKernelDimension; ++frameIndex)
             this->processedFrames[index].push_back(this->processedFrames[index - 1][frameIndex]);
-        
-        // Doubling up frame size
-        this->kernelDimension *= 2;
       }
       
-      std::size_t getNearestKernelIndex(std::vector<double>& frame)
+      std::size_t getNearestKernelIndex(const std::vector<double>& frame)
       {
-        auto currentKernel = Kernel(this->kernelDimension, frame.data());
+        auto currentKernel = Kernel(this->kernelDimension * 4, frame);
         std::size_t nearestKernelIndex = 0;
         double nearestKernelDistance = std::numeric_limits<double>::max();
         
@@ -177,8 +170,9 @@ namespace DictaWav
       
       void cleanCanvas()
       {
-        for (auto& kernel : this->activeKernels)
-          kernel = false;
+        for (auto iterator = this->activeKernels.begin();
+             iterator != this->activeKernels.end(); ++iterator)
+          *iterator = false;
       }
   };
 }

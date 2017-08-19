@@ -38,7 +38,7 @@ int main(int argc, char** argv)
     else if (mode == "c") {
       std::cout << "Enter wav file name to classify:" << std::endl;
       std::cin >> wavFile;
-      dictaWav.classify(wavFile);
+      std::cout << "Best match: " << dictaWav.classify(wavFile) << std::endl;
     }
     else if (mode == "q")
       flag = false;

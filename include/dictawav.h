@@ -29,12 +29,12 @@ namespace DictaWav
     
     public:
       DictaWav() :
-          kernelCanvas(1024, 13),
-          wisard(1024, 3)
+          kernelCanvas(1024, 13, 1),
+          wisard(1024, 3, true, 0.1)
       { }
       
       void newTraining(std::string wavTrainingFile, std::string className);
-      void classify(std::string wavFileToClassify);
+      std::string classify(std::string wavFileToClassify);
     
     private:
       void readAndProcessWavFile(std::string wavFile);

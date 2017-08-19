@@ -14,11 +14,11 @@ namespace DictaWav
   Wisard::Wisard(
       std::size_t retinaSize,
       std::size_t numBitsAddr,
-      bool useBleaching = true,
-      double confidenceMinimumRate = 0.1,
-      unsigned bleachingThreshold = 1,
-      bool randomizePositions = true,
-      bool isCumulative = true
+      bool useBleaching,
+      double confidenceMinimumRate,
+      unsigned bleachingThreshold,
+      bool randomizePositions,
+      bool isCumulative
                 ) :
       retinaSize(retinaSize),
       numBitsAddress(numBitsAddr),
@@ -47,7 +47,7 @@ namespace DictaWav
   }
   
   void Wisard::train(
-      const std::vector<bool>& trainingRetina,
+      std::vector<bool> trainingRetina,
       const std::string& className
                     )
   {
@@ -64,8 +64,8 @@ namespace DictaWav
     this->discriminators[className]->train(trainingRetina);
   }
   
-  std::unordered_map<std::string, double>&& Wisard::classificationsProbabilities(
-      const std::vector<bool>& retina
+  std::unordered_map<std::string, double> Wisard::classificationsProbabilities(
+      std::vector<bool> retina
                                                                                 )
   {
     std::unordered_map<std::string, double> result;
@@ -97,33 +97,34 @@ namespace DictaWav
     if (this->useBleaching)
       result = this->applyBleaching(result, ramResults);
     
-    return std::move(result);
+    return result;
   }
   
-  std::string Wisard::classify(const std::vector<bool>& retina)
+  std::string Wisard::classify(std::vector<bool> retina)
   {
     return this->classificationConfidenceAndProbability(retina).second.first;
   }
   
-  std::pair<std::string, double>&& Wisard::classificationAndProbability(
-      const std::vector<bool>& retina
+  std::pair<std::string, double> Wisard::classificationAndProbability(
+      std::vector<bool> retina
                                                                        )
   {
-    return std::move(this->classificationConfidenceAndProbability(retina).second);
+    return this->classificationConfidenceAndProbability(retina).second;
   }
   
-  std::pair<double, std::pair<std::string, double>>&& Wisard::classificationConfidenceAndProbability(
-      const std::vector<bool>& retina
-                                                                                                    )
+  std::pair<double, std::pair<std::string, double>> Wisard::classificationConfidenceAndProbability(
+      std::vector<bool> retina
+                                                                                                  )
   {
     auto result = this->calculateConfidence(this->classificationsProbabilities(retina));
-    if (result.first < this->confidenceMinimumRate)
-      return std::move(std::make_pair(0, std::make_pair("Not enough confidence to decide", 0)));
+    if (result.first < this->confidenceMinimumRate){
+      return std::make_pair(0, std::make_pair("Not enough confidence to decide", 0));
+    }
     
-    return std::move(result);
+    return result;
   }
   
-  std::unordered_map<std::string, double>&& Wisard::applyBleaching(
+  std::unordered_map<std::string, double> Wisard::applyBleaching(
       std::unordered_map<std::string, double>& classificationsProbabilitiesResult,
       std::unordered_map<std::string, std::vector<unsigned>>& ramResult
                                                                   )
@@ -164,10 +165,10 @@ namespace DictaWav
       confidence = this->calculateConfidence(classifications).first;
     }
     
-    return std::move(classifications);
+    return classifications;
   }
   
-  std::pair<double, std::pair<std::string, double>>&& Wisard::calculateConfidence(
+  std::pair<double, std::pair<std::string, double>> Wisard::calculateConfidence(
       const std::unordered_map<std::string, double>& classificationsProbabilitiesResult
                                                                                  )
   {
@@ -188,6 +189,6 @@ namespace DictaWav
     }
     
     // First value is confidence, second is a pair with best class name and it's probability
-    return std::move(std::make_pair((max - secondMax) / max, bestClass));
+    return std::make_pair((max - secondMax) / max, bestClass);
   }
 }

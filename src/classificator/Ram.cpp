@@ -11,7 +11,7 @@
 
 namespace DictaWav
 {
-  Ram::Ram(std::size_t bitsCount, bool isCumulative = true) :
+  Ram::Ram(std::size_t bitsCount, bool isCumulative) :
       bitsCount(bitsCount),
       isCumulative(isCumulative)
   {

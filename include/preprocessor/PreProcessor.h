@@ -61,8 +61,8 @@ namespace DictaWav
       
       void process(std::shared_ptr<std::vector<double>> audioData);
       
-      std::vector<Frame<double>>&& getFrames()
-      { return std::move(this->processedFrames); }
+      std::vector<Frame<double>>& getFrames()
+      { return this->processedFrames; }
       
       // For debug purpose only
       void report();

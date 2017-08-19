@@ -28,7 +28,7 @@ namespace DictaWav
         firstFrame.push(audioData->operator[](index) * this->hannWindowFunction(firstFrame.size()));
       }
       else if (sampleCounter >= frameMidPoint && sampleCounter < this->samplesPerFrame) {
-        if (!thirdFrameComplete.empty()) {
+        if (!thirdFrameComplete.empty() && thirdFrameComplete.size() == this->samplesPerFrame) {
           this->addFrame(
               this->dftHandler.processDCT(
                   this->mfcc.computeMFCC(
@@ -50,17 +50,28 @@ namespace DictaWav
             audioData->operator[](index) * this->hannWindowFunction(thirdFrameFirstHalf.size()));
       }
       
-      thirdFrameComplete = std::move(thirdFrameFirstHalf);
-      this->addFrame(
-          this->dftHandler
-              .processDCT(
-                  this->mfcc
-                      .computeMFCC(this->dftHandler.processFFT(firstFrame))));
-      this->addFrame(
-          this->dftHandler
-              .processDCT(
-                  this->mfcc
-                      .computeMFCC(this->dftHandler.processFFT(secondFrame))));
+      if(thirdFrameFirstHalf.size() == this->samplesPerFrame / 2){
+        thirdFrameComplete = std::move(thirdFrameFirstHalf);
+        thirdFrameFirstHalf = Frame<double>(this->samplesPerFrame);
+      }
+      if(firstFrame.size() == this->samplesPerFrame){
+        this->addFrame(
+            this->dftHandler
+                .processDCT(
+                    this->mfcc
+                        .computeMFCC(this->dftHandler.processFFT(firstFrame))));
+        firstFrame = Frame<double>(this->samplesPerFrame);
+      }
+  
+      if(secondFrame.size() == this->samplesPerFrame){
+        this->addFrame(
+            this->dftHandler
+                .processDCT(
+                    this->mfcc
+                        .computeMFCC(this->dftHandler.processFFT(secondFrame))));
+        secondFrame = Frame<double>(this->samplesPerFrame);
+      }
+      
       
       if (sampleCounter > this->samplesPerFrame + frameMidPoint)
         sampleCounter = 0;
