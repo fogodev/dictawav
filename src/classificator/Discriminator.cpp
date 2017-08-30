@@ -41,13 +41,12 @@ namespace DictaWav
       delete this->rams[index];
   }
   
-  void Discriminator::train(std::vector<bool> trainingRetina)
+  void Discriminator::train(std::vector<char> trainingRetina)
   {
     std::size_t ramIndex = 0;
     std::size_t address = 0;
     std::size_t restOfPositions = 0;
     std::size_t base;
-    auto retina = trainingRetina;
     
     // Each group of numBitsAddress is related with a ram
     for (std::size_t index = 0;
@@ -57,7 +56,7 @@ namespace DictaWav
       base = 1;
       
       for (std::size_t bitIndex = 0; bitIndex != this->numBitsAddress; ++bitIndex) {
-        if (retina[this->ramAddressMapping[index + bitIndex]])
+        if (trainingRetina[this->ramAddressMapping[index + bitIndex]])
           address += base;
         base *= 2;
       }
@@ -72,7 +71,7 @@ namespace DictaWav
       address = 0;
       base = 1;
       for (std::size_t bitIndex = 0; bitIndex != this->numBitsAddress; ++bitIndex) {
-        if (retina[this->ramAddressMapping[this->retinaSize - restOfPositions - 1 + bitIndex]])
+        if (trainingRetina[this->ramAddressMapping[this->retinaSize - restOfPositions - 1 + bitIndex]])
           address += base;
         base *= 2;
       }
@@ -80,7 +79,7 @@ namespace DictaWav
     }
   }
   
-  std::vector<unsigned> Discriminator::classify(std::vector<bool> retina)
+  std::vector<unsigned> Discriminator::classify(std::vector<char> retina)
   {
     std::size_t ramIndex = 0;
     std::size_t address = 0;

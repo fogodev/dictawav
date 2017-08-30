@@ -17,11 +17,10 @@ namespace DictaWav
   
   void WavHandler::setWavInfo(std::string wavPath)
   {
-    this->wavPath = wavPath;
     this->wavInfo = SndfileHandle(wavPath);
     
     if (this->wavInfo.error())
-      throw new std::runtime_error("LibSndFile error: " + std::string(this->wavInfo.strError()));
+      throw std::runtime_error("LibSndFile error: " + std::string(this->wavInfo.strError()));
     
     this->extractAudioData();
   }
@@ -29,19 +28,19 @@ namespace DictaWav
   void WavHandler::extractAudioData()
   {
     sf_count_t readFrames;
+    sf_count_t audioDataSize = this->wavInfo.frames() * this->wavInfo.channels();
     
-    this->audioDataSize = this->wavInfo.frames() * this->wavInfo.channels();
-    this->audioDataPtr = std::make_shared<std::vector<double>>(this->audioDataSize);
-    readFrames = this->wavInfo.read(this->audioDataPtr->data(), this->audioDataSize);
+    this->audioDataPtr = std::make_shared<std::vector<double>>(audioDataSize);
+    readFrames = this->wavInfo.read(this->audioDataPtr->data(), audioDataSize);
     
-    if (readFrames != this->audioDataSize)
+    if (readFrames != audioDataSize)
       throw std::runtime_error("LibSndFile error: Couldn't read all the frames on wav file.");
     
     if (this->wavInfo.channels() > 1)
       this->convertToMono();
     
     if (this->audioDataPtr->empty())
-      throw new std::runtime_error("LibSndFile error: Failed to read audio file.");
+      throw std::runtime_error("LibSndFile error: Failed to read audio file.");
   }
   
   void WavHandler::convertToMono()
@@ -49,13 +48,13 @@ namespace DictaWav
     auto frames = this->wavInfo.frames();
     auto channelsCount = this->wavInfo.channels();
     
-    std::vector<double> monoAudio(frames);
-    for (int frame = 0; frame != frames; ++frame) {
-      for (int currentChannel = 0; currentChannel != channelsCount; ++currentChannel)
-        monoAudio[frame] += this->audioDataPtr->operator[](frame * channelsCount + currentChannel);
-      monoAudio[frame] /= channelsCount;
+    std::vector<double>* monoAudio = new std::vector<double>(frames);
+    for (std::size_t frame = 0; frame != frames; ++frame) {
+      for (std::size_t currentChannel = 0; currentChannel != channelsCount; ++currentChannel)
+        (*monoAudio)[frame] += (*this->audioDataPtr)[frame * channelsCount + currentChannel];
+      (*monoAudio)[frame] /= channelsCount;
     }
     
-    this->audioDataPtr = std::make_shared<decltype(monoAudio)>(monoAudio);
+    this->audioDataPtr = std::shared_ptr<std::vector<double>>(monoAudio);
   }
 }

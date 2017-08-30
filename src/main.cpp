@@ -32,18 +32,26 @@ int main(int argc, char** argv)
     if (mode == "t") {
       std::cout << "Enter wav file name and respective class name to train:" << std::endl;
       std::cin >> wavFile >> className;
-      dictaWav.newTraining(wavFile, className);
-      std::cout << "Training complete!" << std::endl;
+      try {
+        dictaWav.newTraining(wavFile, className);
+        std::cout << "Training complete!" << std::endl;
+      } catch (std::runtime_error& exception){
+        std::cerr << exception.what() << std::endl;
+      }
     }
     else if (mode == "c") {
       std::cout << "Enter wav file name to classify:" << std::endl;
       std::cin >> wavFile;
-      std::cout << "Best match: " << dictaWav.classify(wavFile) << std::endl;
+      try {
+        std::cout << "Best match: " << dictaWav.classify(wavFile) << std::endl;
+      } catch (std::runtime_error& exception){
+        std::cerr << exception.what() << std::endl;
+      }
     }
     else if (mode == "q")
       flag = false;
     else
-      std::cout << "Not a valid command" << std::endl;
+      std::cerr << "Not a valid command" << std::endl;
     
   }
   while (flag);

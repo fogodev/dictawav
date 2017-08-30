@@ -29,8 +29,8 @@ namespace DictaWav
     
     public:
       DictaWav() :
-          kernelCanvas(1024, 13, 1),
-          wisard(1024, 3, true, 0.1)
+          kernelCanvas(256, 13, 2),
+          wisard(512, 24, true, 0.1)
       { }
       
       void newTraining(std::string wavTrainingFile, std::string className);

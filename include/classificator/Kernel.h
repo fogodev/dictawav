@@ -22,7 +22,7 @@ namespace DictaWav
       double* coordinates;
     
     public:
-      Kernel(std::size_t dimension) :
+      explicit Kernel(std::size_t dimension) :
           dimension(dimension),
           coordinates(new double[dimension])
       {

@@ -27,9 +27,9 @@ namespace DictaWav
       std::size_t numKernels;
       std::size_t kernelDimension;
       int outputFactor = 1;
-      std::vector<Kernel> kernels;
-      std::vector<bool> activeKernels;
-      std::vector<std::vector<double>> processedFrames;
+      std::vector<Kernel> kernels{};
+      std::vector<char> activeKernels{};
+      std::vector<std::vector<double>> processedFrames{};
     
     public:
       KernelCanvas(std::size_t numKernels, std::size_t kernelDimension, int outputFactor = 1) :
@@ -38,11 +38,11 @@ namespace DictaWav
           activeKernels(numKernels, false),
           outputFactor(outputFactor)
       {
-        for (int kernel = 0; kernel != numKernels; ++kernel)
+        for (std::size_t kernel = 0; kernel != numKernels; ++kernel)
           this->kernels.push_back(Kernel(this->kernelDimension * 4));
       }
       
-      void preProcess(const std::vector<Frame>& frames)
+      void preProcess(std::shared_ptr<std::vector<Frame>> frames)
       {
         // Cleaning the canvas
         this->processedFrames = std::vector<std::vector<double>>();
@@ -53,12 +53,12 @@ namespace DictaWav
         this->replicateFeatures();
       }
       
-      std::vector<bool> getPaintedCanvas()
+      std::vector<char> getPaintedCanvas()
       {
         this->paintCanvas();
         
         auto activeKernelsSize = this->activeKernels.size();
-        std::vector<bool> paintedCanvas;
+        std::vector<char> paintedCanvas;
         
         // KernelCanvas output can be replicated to give better results with WiSARD
         for (std::size_t index = 0; index != activeKernelsSize * this->outputFactor; ++index) {
@@ -68,10 +68,10 @@ namespace DictaWav
       }
     
     private:
-      void appendSumFrames(const std::vector<Frame>& frames)
+      void appendSumFrames(std::shared_ptr<std::vector<Frame>> frames)
       {
         // First frame
-        auto& firstFrame = frames[0];
+        auto& firstFrame = (*frames)[0];
         std::vector<double> frame;
         for (std::size_t frameIndex = 0; frameIndex != this->kernelDimension * 2; ++frameIndex) {
           frame.push_back(firstFrame[frameIndex % this->kernelDimension]);
@@ -80,8 +80,8 @@ namespace DictaWav
         frame = std::vector<double>();
         
         // Other frames
-        for (std::size_t index = 1; index != frames.size(); ++index) {
-          auto& currentFrame = frames[index];
+        for (std::size_t index = 1; index != frames->size(); ++index) {
+          auto& currentFrame = (*frames)[index];
           
           for (std::size_t frameIndex = 0; frameIndex != this->kernelDimension; ++frameIndex)
             frame.push_back(currentFrame[frameIndex]);

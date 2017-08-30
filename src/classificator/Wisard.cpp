@@ -7,6 +7,7 @@
 \*************************************************************/
 
 
+#include <iostream>
 #include "../../include/classificator/Wisard.h"
 
 namespace DictaWav
@@ -47,7 +48,7 @@ namespace DictaWav
   }
   
   void Wisard::train(
-      std::vector<bool> trainingRetina,
+      std::vector<char> trainingRetina,
       const std::string& className
                     )
   {
@@ -65,7 +66,7 @@ namespace DictaWav
   }
   
   std::unordered_map<std::string, double> Wisard::classificationsProbabilities(
-      std::vector<bool> retina
+      std::vector<char> retina
                                                                                 )
   {
     std::unordered_map<std::string, double> result;
@@ -100,20 +101,20 @@ namespace DictaWav
     return result;
   }
   
-  std::string Wisard::classify(std::vector<bool> retina)
+  std::string Wisard::classify(std::vector<char> retina)
   {
     return this->classificationConfidenceAndProbability(retina).second.first;
   }
   
   std::pair<std::string, double> Wisard::classificationAndProbability(
-      std::vector<bool> retina
+      std::vector<char> retina
                                                                        )
   {
     return this->classificationConfidenceAndProbability(retina).second;
   }
   
   std::pair<double, std::pair<std::string, double>> Wisard::classificationConfidenceAndProbability(
-      std::vector<bool> retina
+      std::vector<char> retina
                                                                                                   )
   {
     auto result = this->calculateConfidence(this->classificationsProbabilities(retina));
@@ -188,7 +189,8 @@ namespace DictaWav
         secondMax = value;
     }
     
+    double confidence = max ? (max - secondMax) / max : 0;
     // First value is confidence, second is a pair with best class name and it's probability
-    return std::make_pair((max - secondMax) / max, bestClass);
+    return std::make_pair(confidence, bestClass);
   }
 }

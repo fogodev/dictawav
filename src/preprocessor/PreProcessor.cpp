@@ -23,74 +23,67 @@ namespace DictaWav
       if (sampleCounter < frameMidPoint) {
         if (!thirdFrameComplete.empty())
           thirdFrameComplete.push(
-              audioData->operator[](index) * this->hannWindowFunction(thirdFrameComplete.size()));
+              (*audioData)[index] * this->hannWindowFunction(thirdFrameComplete.size()));
         
-        firstFrame.push(audioData->operator[](index) * this->hannWindowFunction(firstFrame.size()));
+        firstFrame.push((*audioData)[index] * this->hannWindowFunction(firstFrame.size()));
       }
       else if (sampleCounter >= frameMidPoint && sampleCounter < this->samplesPerFrame) {
         if (!thirdFrameComplete.empty() && thirdFrameComplete.size() == this->samplesPerFrame) {
-          this->addFrame(
-              this->dftHandler.processDCT(
-                  this->mfcc.computeMFCC(
-                      this->dftHandler
-                          .processFFT(thirdFrameComplete)
-                  )
-              )
-          );
+          this->addFrame(this->dftHandler.processDCT(
+                  this->mfcc.computeMFCC(this->dftHandler.processFFT(thirdFrameComplete))
+          ));
         }
         
-        firstFrame.push(audioData->operator[](index) * this->hannWindowFunction(firstFrame.size()));
+        firstFrame.push((*audioData)[index] * this->hannWindowFunction(firstFrame.size()));
         secondFrame.push(
-            audioData->operator[](index) * this->hannWindowFunction(secondFrame.size()));
+            (*audioData)[index] * this->hannWindowFunction(secondFrame.size()));
       }
       else {
         secondFrame.push(
-            audioData->operator[](index) * this->hannWindowFunction(secondFrame.size()));
+            (*audioData)[index] * this->hannWindowFunction(secondFrame.size()));
         thirdFrameFirstHalf.push(
-            audioData->operator[](index) * this->hannWindowFunction(thirdFrameFirstHalf.size()));
+            (*audioData)[index] * this->hannWindowFunction(thirdFrameFirstHalf.size()));
       }
       
-      if(thirdFrameFirstHalf.size() == this->samplesPerFrame / 2){
+      if(thirdFrameFirstHalf.size() == frameMidPoint){
         thirdFrameComplete = std::move(thirdFrameFirstHalf);
         thirdFrameFirstHalf = Frame<double>(this->samplesPerFrame);
       }
       if(firstFrame.size() == this->samplesPerFrame){
-        this->addFrame(
-            this->dftHandler
-                .processDCT(
-                    this->mfcc
-                        .computeMFCC(this->dftHandler.processFFT(firstFrame))));
+        this->addFrame(this->dftHandler.processDCT(
+            this->mfcc.computeMFCC(this->dftHandler.processFFT(firstFrame))
+        ));
         firstFrame = Frame<double>(this->samplesPerFrame);
       }
   
       if(secondFrame.size() == this->samplesPerFrame){
-        this->addFrame(
-            this->dftHandler
-                .processDCT(
-                    this->mfcc
-                        .computeMFCC(this->dftHandler.processFFT(secondFrame))));
+        this->addFrame(this->dftHandler.processDCT(
+            this->mfcc.computeMFCC(this->dftHandler.processFFT(secondFrame))
+        ));
         secondFrame = Frame<double>(this->samplesPerFrame);
       }
-      
       
       if (sampleCounter > this->samplesPerFrame + frameMidPoint)
         sampleCounter = 0;
       else
         ++sampleCounter;
     }
+    
+    // Adding remaining frames
+    if(!firstFrame.empty()){
+      while(firstFrame.size() < this->samplesPerFrame)
+        firstFrame.push(0);
+      this->addFrame(this->dftHandler.processDCT(
+          this->mfcc.computeMFCC(this->dftHandler.processFFT(firstFrame))
+      ));
+    }
+    
+    if(!secondFrame.empty()){
+      while(secondFrame.size() < this->samplesPerFrame)
+        secondFrame.push(0);
+      this->addFrame(this->dftHandler.processDCT(
+          this->mfcc.computeMFCC(this->dftHandler.processFFT(secondFrame))
+      ));
+    }
   }
-  
-//  void PreProcessor::report() // Execute on terminal: graph -T png -C --bitmap-size 4000x4000 < A.txt > plot.png
-//  {
-//    while (true) {
-//      if (!this->processedFrames.empty()) {
-//        auto& frame = this->processedFrames.front();
-//        for (int pos = 0; pos != frame.size(); ++pos)
-//          std::cout << pos << " " << frame[pos] << "\n";
-//
-//        std::cout << "\n";
-//        this->processedFrames.pop();
-//      }
-//    }
-//  }
 }

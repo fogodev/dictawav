@@ -27,7 +27,7 @@ namespace DictaWav
     private:
       std::size_t sampleRate;
       std::size_t samplesPerFrame;
-      std::vector<FrameType> processedFrames;
+      std::shared_ptr<std::vector<FrameType>> processedFrames;
       DFTHandler dftHandler;
       MFCC<double> mfcc;
       
@@ -38,7 +38,7 @@ namespace DictaWav
       static constexpr double pi = std::atan(1) * 4;
     
     public:
-      PreProcessor(std::size_t sampleRate) :
+      explicit PreProcessor(std::size_t sampleRate) :
           sampleRate(sampleRate),
           samplesPerFrame(getNextPowerOf2(sampleRate / 100)), // To get 10ms sized Frames
           dftHandler(samplesPerFrame, filterBankCount, dftDouble),
@@ -47,34 +47,32 @@ namespace DictaWav
               filterBankCount,
               samplesPerFrame,
               lowerFrequency,
-              calculateHigherFrequency(sampleRate))
+              calculateHigherFrequency(sampleRate)),
+          processedFrames(std::make_shared<std::vector<FrameType>>())
       { }
       
       void addFrame(Frame<double> frame)
-      { this->processedFrames.push_back(std::move(frame)); }
+      { this->processedFrames->push_back(std::move(frame)); }
       
       double hannWindowFunction(std::size_t index)
       { return 0.5 * (1 - std::cos((2 * pi * index) / this->samplesPerFrame)); }
       
-      std::size_t calculateHigherFrequency(std::size_t sampleRate)
-      { return sampleRate / 2; }
-      
       void process(std::shared_ptr<std::vector<double>> audioData);
-      
-      std::vector<Frame<double>>& getFrames()
+    
+      std::shared_ptr<std::vector<FrameType>> getFrames()
       { return this->processedFrames; }
       
-      // For debug purpose only
-      void report();
-    
     private:
-      std::size_t getNextPowerOf2(std::size_t num)
+      constexpr std::size_t getNextPowerOf2(std::size_t num)
       {
         std::size_t base2 = 1;
         while (base2 < num)
           base2 <<= 1;
         return base2;
       }
+    
+      constexpr std::size_t calculateHigherFrequency(std::size_t sampleRate)
+      { return sampleRate / 2; }
   };
 }
 #endif //DICTA_PREPROCESSOR_H

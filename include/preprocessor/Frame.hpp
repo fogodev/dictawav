@@ -25,7 +25,7 @@ namespace DictaWav
     public:
       Frame() = default;
       
-      Frame(std::size_t numSamples) :
+      explicit Frame(std::size_t numSamples) :
           numSamples(numSamples),
           samples(new T[numSamples])
       { }

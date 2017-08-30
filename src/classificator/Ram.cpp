@@ -17,7 +17,7 @@ namespace DictaWav
   {
     if (bitsCount > 62)
       throw std::runtime_error(
-          "ERROR: Representation overflow due to number of bits being greater than 62."
+          "WiSARD-RAM ERROR: Representation overflow due to number of bits being greater than 62."
       );
     this->maxAddress = static_cast<std::size_t>(std::pow(static_cast<std::size_t>(2), bitsCount));
   }
@@ -31,7 +31,8 @@ namespace DictaWav
   {
     if (address >= this->maxAddress)
       throw std::runtime_error(
-          "ERROR: Pushing address out of range 0 to " + std::to_string(this->maxAddress));
+          "WiSARD-RAM ERROR: Pushing address out of range 0 to " + std::to_string(this->maxAddress)
+      );
     
     if (!this->isCumulative)
       this->data[address] = 1;
@@ -45,7 +46,8 @@ namespace DictaWav
   {
     if (address >= this->maxAddress)
       throw std::runtime_error(
-          "ERROR: Pushing address out of range 0 to " + std::to_string(this->maxAddress));
+          "WiSARD-RAM ERROR: Pushing address out of range 0 to " + std::to_string(this->maxAddress)
+      );
     
     if (this->data.find(address) == this->data.end())
       return 0;

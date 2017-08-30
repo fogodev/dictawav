@@ -47,30 +47,30 @@ namespace DictaWav
             );
       ~Wisard();
       
-      void train(std::vector<bool> trainingRetina, const std::string& className);
+      void train(std::vector<char> trainingRetina, const std::string& className);
       
-      std::string classify(std::vector<bool> retina);
+      std::string classify(std::vector<char> retina);
       
       std::unordered_map<std::string, double> classificationsProbabilities(
-          std::vector<bool> retina
-                                                                            );
+          std::vector<char> retina
+                                                                          );
       std::pair<std::string, double> classificationAndProbability(
-          std::vector<bool> retina
-                                                                   );
+          std::vector<char> retina
+                                                                 );
       
       std::pair<double, std::pair<std::string, double>> classificationConfidenceAndProbability(
-          std::vector<bool> retina
+          std::vector<char> retina
                                                                                               );
     
     private:
       std::unordered_map<std::string, double> applyBleaching(
           std::unordered_map<std::string, double>& classificationsProbabilitiesResult,
           std::unordered_map<std::string, std::vector<unsigned>>& ramResult
-                                                              );
+                                                            );
       
       std::pair<double, std::pair<std::string, double>> calculateConfidence(
           const std::unordered_map<std::string, double>& classificationsProbabilitiesResult
-                                                                             );
+                                                                           );
   };
 }
 

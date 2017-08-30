@@ -34,8 +34,8 @@ namespace DictaWav
       
       ~Discriminator();
       
-      void train(std::vector<bool> retina);
-      std::vector<unsigned> classify(std::vector<bool> retina);
+      void train(std::vector<char> retina);
+      std::vector<unsigned> classify(std::vector<char> retina);
   };
 }
 

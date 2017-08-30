@@ -19,13 +19,13 @@ namespace DictaWav
   class Ram
   {
     private:
-      std::unordered_map<std::size_t, unsigned> data;
+      std::unordered_map<std::size_t, unsigned> data{};
       std::size_t maxAddress;
       std::size_t bitsCount;
       bool isCumulative;
     
     public:
-      Ram(std::size_t bitsCount, bool isCumulative = true);
+      explicit Ram(std::size_t bitsCount, bool isCumulative = true);
       ~Ram();
       
       void push(const std::size_t& address);
