@@ -2,33 +2,25 @@ cmake_minimum_required(VERSION 3.5)
 project(DictaWav)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # List of Header files (.h, .hh, .hpp)
 set(HEADER_FILES
     include/dictawav.h
     include/wav_handler/WavHandler.h
     include/preprocessor/PreProcessor.h
-    include/preprocessor/Frame.hpp
-    include/preprocessor/MFCC.hpp
-    include/preprocessor/DFTHandler.h
+    include/preprocessor/MFCC.h
     include/classificator/Kernel.h
-    include/classificator/KernelCanvas.hpp
+    include/classificator/KernelCanvas.h
     include/classificator/Wisard.h
     include/classificator/Discriminator.h
     include/classificator/Ram.h
-    )
+    include/preprocessor/FFTHandler.h
+    include/preprocessor/DCTHandler.h)
 
 # List of Source files (.c, .cc, .cpp)
 set(SOURCE_FILES
-    src/dictawav.cpp
-    src/wav_handler/WavHandler.cpp
-    src/preprocessor/PreProcessor.cpp
-    src/preprocessor/DFTHandler.cpp
-    src/classificator/Wisard.cpp
-    src/classificator/Discriminator.cpp
-    src/classificator/Ram.cpp
-    src/main.cpp
+        src/main.cpp
     )
 
 # Include Projet cmake scripts (Mostly used to find dependencies libraries on the system)
@@ -57,6 +49,7 @@ if (LIBSNDFILE_FOUND AND FFTW_FOUND)
     target_link_libraries(${PROJECT_NAME}
                           ${LIBSNDFILE_LIBRARIES}
                           ${FFTW_LIBRARIES}
+                          -lstdc++fs
                           )
 
 endif ()
